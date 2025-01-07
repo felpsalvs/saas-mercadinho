@@ -1,6 +1,6 @@
-import React from 'react';
-import { Trash2 } from 'lucide-react';
-import { SaleItem } from '../../types';
+import React from "react";
+import { Trash2 } from "lucide-react";
+import { SaleItem } from "../../types";
 
 interface CartProps {
   items: SaleItem[];
@@ -14,33 +14,38 @@ export function Cart({ items, onUpdateQuantity, onRemoveItem }: CartProps) {
   return (
     <div className="bg-white rounded-lg shadow-lg p-4 h-full flex flex-col">
       <h2 className="text-lg font-semibold mb-4">Carrinho</h2>
-      
+
       <div className="flex-1 overflow-auto">
         {items.map((item, index) => (
-          <div key={index} className="flex items-center gap-4 py-2 border-b">
-            <div className="flex-1">
+          <div
+            key={index}
+            className="flex flex-col sm:flex-row items-start sm:items-center gap:2 sm:gap-4 py-4 border-b"
+          >
+            <div className="flex-1 w-full sm:w-auto">
               <p className="font-medium">{item.productName}</p>
               <p className="text-sm text-gray-500">
-                R$ {item.price.toFixed(2)} {item.unit === 'kg' ? '/kg' : '/un'}
+                R$ {item.price.toFixed(2)} {item.unit === "kg" ? "/kg" : "/un"}
               </p>
             </div>
-            
-            <div className="flex items-center gap-2">
+
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               <input
                 type="number"
                 value={item.quantity}
-                onChange={(e) => onUpdateQuantity(index, Number(e.target.value))}
+                onChange={(e) =>
+                  onUpdateQuantity(index, Number(e.target.value))
+                }
                 className="w-20 px-2 py-1 border rounded"
                 min="0"
-                step={item.unit === 'kg' ? '0.1' : '1'}
+                step={item.unit === "kg" ? "0.1" : "1"}
               />
               <span className="text-sm text-gray-500">{item.unit}</span>
             </div>
-            
-            <p className="w-24 text-right font-medium">
+
+            <p className="text-right w-full font-medium sm:w-24">
               R$ {item.total.toFixed(2)}
             </p>
-            
+
             <button
               onClick={() => onRemoveItem(index)}
               className="p-1 text-gray-400 hover:text-red-500"
@@ -50,16 +55,18 @@ export function Cart({ items, onUpdateQuantity, onRemoveItem }: CartProps) {
           </div>
         ))}
       </div>
-      
+
       <div className="mt-4 pt-4 border-t">
         <div className="flex justify-between items-center text-xl font-semibold">
           <span>Total</span>
           <span>R$ {total.toFixed(2)}</span>
         </div>
-        
+
         <button
           className="w-full mt-4 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
-          onClick={() => {/* Implementar finalização */}}
+          onClick={() => {
+            /* Implementar finalização */
+          }}
         >
           Finalizar Venda
         </button>
