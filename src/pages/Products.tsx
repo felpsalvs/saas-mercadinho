@@ -1,20 +1,22 @@
-import React, { useState } from 'react';
-import { Plus, Search, Edit2, Trash2, Package } from 'lucide-react';
-import { StockMovementModal } from '../components/products/StockMovementModal';
-import { StockHistory } from '../components/products/StockHistory';
-import { LoadingSpinner } from '../components/ui/LoadingSpinner';
-import { ErrorMessage } from '../components/ui/ErrorMessage';
-import { useProducts } from '../hooks/useProducts';
-import { updateStock } from '../services/products';
-import type { Product, StockMovement } from '../types';
+import React, { useState } from "react";
+import { Plus, Search, Edit2, Trash2, Package } from "lucide-react";
+import { StockMovementModal } from "../components/products/StockMovementModal";
+import { StockHistory } from "../components/products/StockHistory";
+import { LoadingSpinner } from "../components/ui/LoadingSpinner";
+import { ErrorMessage } from "../components/ui/ErrorMessage";
+import { useProducts } from "../hooks/useProducts";
+import { updateStock } from "../services/products";
+import type { Product, StockMovement } from "../types";
 
 export default function Products() {
   const { products, loading, error, reload } = useProducts();
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showStockModal, setShowStockModal] = useState(false);
 
-  const handleStockMovement = async (movement: Omit<StockMovement, 'id' | 'createdAt'>) => {
+  const handleStockMovement = async (
+    movement: Omit<StockMovement, "id" | "createdAt">
+  ) => {
     try {
       await updateStock(
         movement.productId,
@@ -26,7 +28,7 @@ export default function Products() {
       reload();
     } catch (err) {
       console.error(err);
-      alert('Erro ao atualizar estoque');
+      alert("Erro ao atualizar estoque");
     }
   };
 
@@ -35,15 +37,15 @@ export default function Products() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h1 className="text-2xl font-bold">Produtos</h1>
-        <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+        <button className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
           <Plus size={20} />
           Novo Produto
         </button>
       </div>
 
-      <div className="mb-6 flex gap-4">
+      <div className="mb-6 flex flex-col sm:flex-row gap-4">
         <div className="flex-1 relative">
           <input
             type="text"
@@ -56,8 +58,8 @@ export default function Products() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow mb-6">
-        <table className="w-full">
+      <div className="bg-white rounded-lg shadow overflow-x-auto">
+        <table className="w-full min-w-[640px]">
           <thead>
             <tr className="border-b">
               <th className="text-left p-4">Produto</th>
@@ -70,25 +72,34 @@ export default function Products() {
           </thead>
           <tbody>
             {products
-              .filter(p => p.name.toLowerCase().includes(search.toLowerCase()))
-              .map(product => (
+              .filter((p) =>
+                p.name.toLowerCase().includes(search.toLowerCase())
+              )
+              .map((product) => (
                 <tr key={product.id} className="border-b hover:bg-gray-50">
                   <td className="p-4">{product.name}</td>
                   <td className="p-4">R$ {product.price.toFixed(2)}</td>
                   <td className="p-4">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                      ${product.stock <= product.minStock 
-                        ? 'bg-red-100 text-red-800'
-                        : 'bg-green-100 text-green-800'
-                      }`}>
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                      ${
+                        product.stock <= product.minStock
+                          ? "bg-red-100 text-red-800"
+                          : "bg-green-100 text-green-800"
+                      }`}
+                    >
                       {product.stock} {product.unit}
                     </span>
                   </td>
-                  <td className="p-4">{product.minStock} {product.unit}</td>
-                  <td className="p-4">{product.unit === 'kg' ? 'Kg' : 'Unidade'}</td>
+                  <td className="p-4">
+                    {product.minStock} {product.unit}
+                  </td>
+                  <td className="p-4">
+                    {product.unit === "kg" ? "Kg" : "Unidade"}
+                  </td>
                   <td className="p-4">
                     <div className="flex gap-2 justify-end">
-                      <button 
+                      <button
                         onClick={() => {
                           setSelectedProduct(product);
                           setShowStockModal(true);
@@ -112,7 +123,6 @@ export default function Products() {
         </table>
       </div>
 
-      {/* Modal de Movimentação de Estoque */}
       {showStockModal && selectedProduct && (
         <StockMovementModal
           productId={selectedProduct.id}
