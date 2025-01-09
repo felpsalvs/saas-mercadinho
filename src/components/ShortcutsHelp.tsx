@@ -1,5 +1,5 @@
-import React from 'react';
-import { Keyboard } from 'lucide-react';
+import React from "react";
+import { Keyboard } from "lucide-react";
 
 interface Shortcut {
   key: string;
@@ -27,7 +27,7 @@ export function ShortcutsHelp({ shortcuts }: Props) {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
           <div className="bg-white rounded-lg w-full max-w-md p-6">
             <h2 className="text-xl font-semibold mb-4">Atalhos de Teclado</h2>
-            
+
             <div className="space-y-2">
               {shortcuts.map(({ key, description }) => (
                 <div key={key} className="flex items-center gap-3">

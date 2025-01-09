@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
 type ShortcutHandler = () => void;
 
@@ -13,8 +13,10 @@ export function useKeyboardShortcuts(shortcuts: ShortcutMap) {
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       // Ignora atalhos quando estiver em campos de input
-      if (event.target instanceof HTMLInputElement || 
-          event.target instanceof HTMLTextAreaElement) {
+      if (
+        event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLTextAreaElement
+      ) {
         return;
       }
 
@@ -27,8 +29,8 @@ export function useKeyboardShortcuts(shortcuts: ShortcutMap) {
       }
     }
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [shortcuts]);
 
   return Object.entries(shortcuts).map(([key, { description }]) => ({
