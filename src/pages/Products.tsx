@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Plus, Search, Edit2, Trash2, Package } from "lucide-react";
 import { StockMovementModal } from "../components/products/StockMovementModal";
-import { StockHistory } from "../components/products/StockHistory";
+import { NewProductForm } from "../components/products/NewProductForm";
 import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { useProducts } from "../hooks/useProducts";
@@ -13,6 +13,7 @@ export default function Products() {
   const [search, setSearch] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showStockModal, setShowStockModal] = useState(false);
+  const [showNewProductForm, setShowNewProductForm] = useState(false);
 
   const handleStockMovement = async (
     movement: Omit<StockMovement, "id" | "createdAt">
@@ -39,10 +40,16 @@ export default function Products() {
     <div className="max-w-6xl mx-auto">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h1 className="text-2xl font-bold">Produtos</h1>
-        <button className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+        <button
+          onClick={() => setShowNewProductForm(true)}
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
           <Plus size={20} />
           Novo Produto
         </button>
+        {showNewProductForm && (
+          <NewProductForm onClose={() => setShowNewProductForm(false)} />
+        )}
       </div>
 
       <div className="mb-6 flex flex-col sm:flex-row gap-4">
