@@ -42,7 +42,7 @@ export default function Products() {
         <h1 className="text-2xl font-bold">Produtos</h1>
         <button
           onClick={() => setShowNewProductForm(true)}
-          className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
         >
           <Plus size={20} />
           Novo Produto
@@ -111,12 +111,12 @@ export default function Products() {
                           setSelectedProduct(product);
                           setShowStockModal(true);
                         }}
-                        className="p-1 text-gray-400 hover:text-blue-600"
+                        className="p-1 text-gray-400 hover:text-orange-600"
                         title="Gerenciar Estoque"
                       >
                         <Package size={18} />
                       </button>
-                      <button className="p-1 text-gray-400 hover:text-blue-600">
+                      <button className="p-1 text-gray-400 hover:text-orange-600">
                         <Edit2 size={18} />
                       </button>
                       <button className="p-1 text-gray-400 hover:text-red-600">
