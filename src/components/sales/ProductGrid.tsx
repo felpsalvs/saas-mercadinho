@@ -17,7 +17,7 @@ export function ProductGrid({ products, onProductSelect }: ProductGridProps) {
         >
           <p className="font-medium text-gray-900 truncate">{product.name}</p>
           <p className="text-sm text-gray-500">{product.unit === 'kg' ? 'Por Kg' : 'Unidade'}</p>
-          <p className="mt-2 text-lg font-semibold text-blue-600">
+          <p className="mt-2 text-lg font-semibold text-orange-600">
             R$ {product.price.toFixed(2)}
           </p>
         </button>

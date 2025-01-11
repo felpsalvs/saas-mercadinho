@@ -63,7 +63,7 @@ export function Cart({ items, onUpdateQuantity, onRemoveItem }: CartProps) {
         </div>
 
         <button
-          className="w-full mt-4 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
+          className="w-full mt-4 py-3 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700"
           onClick={() => {
             /* Implementar finalização */
           }}
