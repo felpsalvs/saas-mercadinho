@@ -31,8 +31,8 @@ function MenuItem({
   return (
     <button
       onClick={() => navigate(path)}
-      className={`w-full flex items-center px-6 py-3 text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors
-        ${isActive ? "bg-blue-50 text-blue-600" : ""}`}
+      className={`w-full flex items-center px-6 py-3 text-gray-700 hover:bg-gray-50 hover:text-orange-600 transition-colors
+        ${isActive ? "bg-orange-50 text-orange-600" : ""}`}
     >
       <Icon className="h-5 w-5 mr-3" />
       <span className="flex-1 text-left">{text}</span>
@@ -102,7 +102,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         } md:translate-x-0`}
       >
         <div className="p-4">
-          <h1 className="text-xl font-bold text-gray-800">Market System</h1>
+          <h1 className="text-xl font-bold text-orange-500">Bem+ Economia</h1>
         </div>
         <nav className="mt-8">
           <MenuItem
