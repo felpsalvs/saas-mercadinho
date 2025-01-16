@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthProvider";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import logo from "../assets/logo.png";
 
 export default function LoginPage() {
   const { user } = useAuth();
@@ -16,13 +17,21 @@ export default function LoginPage() {
   }, [user, navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="max-w-md w-full p-8 bg-white rounded-xl shadow-lg">
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
-          Bem-vindo ao Mercadinho
-        </h2>
+        <div className="flex flex-col items-center mb-8">
+          <img src={logo} alt="Logo" className="h-16 w-auto mb-4" />
+          <h2 className="text-2xl font-bold text-center text-gray-800">
+            Bem-vindo ao Mercadinho
+          </h2>
+          <p className="text-gray-600 text-center mt-2">
+            Faça login para continuar
+          </p>
+        </div>
+
         <Auth
           supabaseClient={supabase}
+          providers={[]}
           appearance={{
             theme: ThemeSupa,
             variables: {
@@ -31,6 +40,8 @@ export default function LoginPage() {
                   brand: "#404040",
                   brandAccent: "#2d2d2d",
                   brandButtonText: "white",
+                  defaultButtonBackground: "#f3f4f6",
+                  defaultButtonBackgroundHover: "#e5e7eb",
                   inputBackground: "white",
                   inputBorder: "#e5e7eb",
                   inputText: "#1f2937",
@@ -55,10 +66,13 @@ export default function LoginPage() {
             className: {
               container: "flex flex-col gap-4",
               button:
-                "bg-gray-800 hover:bg-gray-900 text-white font-medium py-2 px-4 rounded-lg transition-colors",
+                "w-full bg-gray-800 hover:bg-gray-900 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 ease-in-out transform hover:translate-y-[-1px]",
               input:
-                "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent",
-              label: "block text-sm font-medium text-gray-700",
+                "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-800 focus:border-transparent transition-all duration-200",
+              label: "block text-sm font-medium text-gray-700 mb-1",
+              loader: "border-gray-800",
+              anchor:
+                "text-sm text-gray-600 hover:text-gray-800 transition-colors",
             },
           }}
           view="sign_in"
@@ -73,17 +87,21 @@ export default function LoginPage() {
                 email_input_placeholder: "seu@email.com",
                 password_input_placeholder: "Sua senha",
               },
-              sign_up: {
-                email_label: "Email",
-                password_label: "Senha",
-                button_label: "Cadastrar",
-                loading_button_label: "Cadastrando...",
-                email_input_placeholder: "seu@email.com",
-                password_input_placeholder: "Escolha uma senha",
-              },
             },
           }}
         />
+
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-600">
+            Precisa de ajuda?{" "}
+            <a
+              href="mailto:suporte@mercadinho.com"
+              className="text-gray-800 hover:text-gray-900 font-medium"
+            >
+              Entre em contato
+            </a>
+          </p>
+        </div>
       </div>
     </div>
   );
