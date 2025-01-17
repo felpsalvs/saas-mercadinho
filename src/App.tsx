@@ -8,6 +8,7 @@ import { AuthProvider } from "./context/AuthProvider";
 import { ProtectedRoute } from "./ProtectedRoute";
 import LoginPage from "./components/LoginPage";
 import { ProductGrid } from "./components/sales/ProductGrid";
+import Dashboard from "./pages/Dashboard";
 
 function App() {
   return (
@@ -20,7 +21,8 @@ function App() {
                 <LoginPage />
               </ProtectedRoute>
             } />
-            <Route path="/" element={<ProtectedRoute><Sales /></ProtectedRoute>} />
+            <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/sales" element={<ProtectedRoute><Sales /></ProtectedRoute>} />
             <Route
               path="/products"
