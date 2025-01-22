@@ -5,12 +5,11 @@ import { useAuth } from "../context/AuthProvider";
 import { useNavigate, Link } from "react-router-dom";
 import { useEffect } from "react";
 import { useTheme } from "../context/ThemeProvider";
-import { FiMoon, FiSun } from 'react-icons/fi';
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
+  const { theme } = useTheme();
 
   useEffect(() => {
     if (user) {
@@ -19,26 +18,14 @@ export default function LoginPage() {
   }, [user, navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 relative">
-      <button
-        onClick={toggleTheme}
-        className="absolute top-4 right-4 p-2 rounded-lg bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all duration-200"
-        aria-label="Alternar tema"
-      >
-        {theme === 'dark' ? (
-          <FiSun className="w-6 h-6 text-orange-500" />
-        ) : (
-          <FiMoon className="w-6 h-6 text-gray-600" />
-        )}
-      </button>
-
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <div className="max-w-md w-full p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
         <div className="flex flex-col items-center mb-8">
           <h2 className="text-2xl font-bold text-center text-gray-800 dark:text-white">
-            Bem-vindo ao <span className="text-orange-600">Bem+ Economia</span>
+            Criar conta no <span className="text-orange-600">Bem+ Economia</span>
           </h2>
           <p className="text-gray-600 dark:text-gray-300 text-center mt-2">
-            Faça login para continuar
+            Preencha os dados para criar sua conta
           </p>
         </div>
 
@@ -85,17 +72,17 @@ export default function LoginPage() {
               anchor: 'text-sm text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-500 transition-colors',
             }
           }}
-          view="sign_in"
+          view="sign_up"
           showLinks={false}
           localization={{
             variables: {
-              sign_in: {
+              sign_up: {
                 email_label: "Email",
                 password_label: "Senha",
-                button_label: "Entrar",
-                loading_button_label: "Entrando...",
+                button_label: "Criar conta",
+                loading_button_label: "Criando...",
                 email_input_placeholder: "seu@email.com",
-                password_input_placeholder: "Sua senha",
+                password_input_placeholder: "Escolha uma senha forte",
               }
             }
           }}
@@ -103,9 +90,9 @@ export default function LoginPage() {
         
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Não tem uma conta?{' '}
-            <Link to="/register" className="text-orange-600 hover:text-orange-500 font-medium">
-              Criar conta
+            Já tem uma conta?{' '}
+            <Link to="/login" className="text-orange-600 hover:text-orange-500 font-medium">
+              Faça login
             </Link>
           </p>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-4">

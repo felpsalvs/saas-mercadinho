@@ -1,50 +1,55 @@
 import React from "react";
 import { Keyboard } from "lucide-react";
+import type { KeyboardShortcut } from "../hooks/useKeyboardShortcuts";
 
-interface Shortcut {
-  key: string;
-  description: string;
+interface ShortcutsHelpProps {
+  shortcuts: Record<string, KeyboardShortcut>;
 }
 
-interface Props {
-  shortcuts: Shortcut[];
-}
-
-export function ShortcutsHelp({ shortcuts }: Props) {
+export function ShortcutsHelp({ shortcuts }: ShortcutsHelpProps) {
   const [isOpen, setIsOpen] = React.useState(false);
 
   return (
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-4 right-4 p-2 bg-gray-800 text-white rounded-full shadow-lg hover:bg-gray-700"
-        title="Atalhos de Teclado"
+        className="fixed bottom-4 right-4 p-3 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:shadow-xl transition-shadow"
+        title="Atalhos de teclado"
       >
-        <Keyboard size={24} />
+        <Keyboard className="h-5 w-5 text-gray-600 dark:text-gray-300" />
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-          <div className="bg-white rounded-lg w-full max-w-md p-6">
-            <h2 className="text-xl font-semibold mb-4">Atalhos de Teclado</h2>
-
-            <div className="space-y-2">
-              {shortcuts.map(({ key, description }) => (
-                <div key={key} className="flex items-center gap-3">
-                  <kbd className="px-2 py-1 bg-gray-100 border rounded text-sm">
-                    {key.toUpperCase()}
-                  </kbd>
-                  <span>{description}</span>
-                </div>
-              ))}
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full max-h-[80vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Atalhos de Teclado
+                </h2>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="space-y-4">
+                {Object.entries(shortcuts).map(([key, shortcut]) => (
+                  <div
+                    key={key}
+                    className="flex items-center justify-between text-sm"
+                  >
+                    <span className="text-gray-600 dark:text-gray-300">
+                      {shortcut.description}
+                    </span>
+                    <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded">
+                      {key.toUpperCase()}
+                    </kbd>
+                  </div>
+                ))}
+              </div>
             </div>
-
-            <button
-              onClick={() => setIsOpen(false)}
-              className="mt-6 w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
-            >
-              Fechar
-            </button>
           </div>
         </div>
       )}

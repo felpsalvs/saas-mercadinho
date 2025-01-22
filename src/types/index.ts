@@ -5,6 +5,8 @@ export interface Product {
   stock: number;
   minStock: number;
   unit: "kg" | "unit";
+  barcode?: string;
+  category?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -24,7 +26,13 @@ export interface Sale {
   items: SaleItem[];
   total: number;
   payments: Payment[];
+  status: "pending" | "completed" | "cancelled";
+  customerName?: string;
+  customerDocument?: string;
+  notes?: string;
+  saleDate: Date;
   createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface SaleItem {
@@ -34,10 +42,23 @@ export interface SaleItem {
   price: number;
   unit: "kg" | "unit";
   total: number;
+  discount?: number;
 }
 
 export interface Payment {
-  method: "pix" | "cash" | "card";
+  method: "pix" | "cash" | "credit" | "debit";
   amount: number;
+  installments?: number;
+  cardBrand?: string;
+  authorizationCode?: string;
   timestamp: Date;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  name?: string;
+  role: "admin" | "cashier";
+  createdAt: Date;
+  updatedAt: Date;
 }
