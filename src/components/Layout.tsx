@@ -1,178 +1,110 @@
-import React from "react";
-import {
-  Menu,
-  ShoppingCart,
-  Package,
-  BarChart3,
-  Settings,
-  Keyboard,
-  Sun,
-  Moon,
-} from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
-import { ShortcutsHelp } from "./ShortcutsHelp";
-import { useTheme } from "../context/ThemeProvider";
-import { useAuth } from "../context/AuthProvider";
+import React from 'react';
+import { Link, useLocation, Outlet } from 'react-router-dom';
+import { useTheme } from '../context/ThemeProvider';
+import { Sun, Moon, Menu, ShoppingCart, Package, BarChart3, Settings } from 'lucide-react';
+import { cn } from '../lib/utils';
 
-interface MenuItemProps {
-  icon: React.ElementType;
-  text: string;
-  path: string;
-  shortcut: string;
-  isActive: boolean;
-}
-
-function MenuItem({
-  icon: Icon,
-  text,
-  path,
-  shortcut,
-  isActive,
-}: MenuItemProps) {
-  const navigate = useNavigate();
-
-  return (
-    <button
-      onClick={() => navigate(path)}
-      className={`w-full flex items-center px-6 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-orange-600 dark:hover:text-orange-500 transition-colors
-        ${isActive ? "bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-500" : ""}`}
-    >
-      <Icon className="h-5 w-5 mr-3" />
-      <span className="flex-1 text-left">{text}</span>
-      <kbd className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-xs rounded">
-        {shortcut}
-      </kbd>
-    </button>
-  );
-}
-
-export default function Layout({ children }: { children: React.ReactNode }) {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+function Layout() {
   const { theme, toggleTheme } = useTheme();
-  const { user } = useAuth();
+  const location = useLocation();
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
 
-  const shortcuts = useKeyboardShortcuts({
-    f1: {
-      handler: () => navigate("/sales"),
-      description: "Ir para Vendas",
-    },
-    f2: {
-      handler: () => navigate("/products"),
-      description: "Ir para Produtos",
-    },
-    f3: {
-      handler: () => navigate("/reports"),
-      description: "Ir para Relatórios",
-    },
-    f4: {
-      handler: () => navigate("/settings"),
-      description: "Ir para Configurações",
-    },
-    "/": {
-      handler: () =>
-        document
-          .querySelector<HTMLInputElement>('input[type="search"]')
-          ?.focus(),
-      description: "Focar na busca",
-    },
-    escape: {
-      handler: () => {
-        const modal = document.querySelector('[role="dialog"]');
-        if (modal) {
-          const closeButton = modal.querySelector('button[type="button"]');
-          closeButton?.click();
-        }
-      },
-      description: "Fechar modal/diálogo",
-    },
-  });
-
-  // Não renderiza o layout se não houver usuário (páginas de auth)
-  if (!user) {
-    return <>{children}</>;
-  }
+  const menuItems = [
+    { path: '/sales', label: 'Vendas', icon: ShoppingCart },
+    { path: '/products', label: 'Produtos', icon: Package },
+    { path: '/reports', label: 'Relatórios', icon: BarChart3 },
+    { path: '/settings', label: 'Configurações', icon: Settings },
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-      {/* Mobile Menu Button */}
-      <button
-        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className="fixed top-4 left-4 z-50 p-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg md:hidden"
-      >
-        <Menu className="text-gray-700 dark:text-gray-300" size={24} />
-      </button>
-
-      {/* Theme Toggle Button */}
-      <button
-        onClick={toggleTheme}
-        className="fixed top-4 right-4 z-50 p-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl"
-        aria-label="Alternar tema"
-      >
-        {theme === 'dark' ? (
-          <Sun className="h-6 w-6 text-orange-500" />
-        ) : (
-          <Moon className="h-6 w-6 text-gray-600" />
-        )}
-      </button>
-
+    <div className={cn(
+      "min-h-screen flex",
+      "bg-background-light dark:bg-background-dark",
+      "text-text-light-primary dark:text-text-dark-primary"
+    )}>
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 h-full w-64 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-200 ease-in-out z-40
-        ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0`}
+        className={cn(
+          "fixed lg:static inset-y-0 left-0 z-50",
+          "w-64 transform transition-transform duration-200 ease-in-out",
+          !isSidebarOpen && "-translate-x-full lg:translate-x-0",
+          "bg-surface-light dark:bg-surface-dark",
+          "border-r border-border-light dark:border-border-dark"
+        )}
       >
-        <div className="p-4">
-          <h1 className="text-xl font-bold text-orange-500">Bem+ Economia</h1>
+        <div className="h-full flex flex-col">
+          {/* Logo */}
+          <div className="p-4 border-b border-border-light dark:border-border-dark">
+            <h1 className="text-xl font-bold">Market SaaS</h1>
+          </div>
+
+          {/* Menu Items */}
+          <nav className="flex-1 p-4 space-y-1">
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.path;
+
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={cn(
+                    "flex items-center px-4 py-2 rounded-lg transition-colors",
+                    "hover:bg-hover-light dark:hover:bg-hover-dark",
+                    isActive && "bg-primary-500 text-white hover:bg-primary-600"
+                  )}
+                >
+                  <Icon className="h-5 w-5 mr-3" />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Theme Toggle */}
+          <div className="p-4 border-t border-border-light dark:border-border-dark">
+            <button
+              onClick={toggleTheme}
+              className={cn(
+                "w-full flex items-center justify-center px-4 py-2 rounded-lg",
+                "hover:bg-hover-light dark:hover:bg-hover-dark",
+                "transition-colors"
+              )}
+            >
+              {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </button>
+          </div>
         </div>
-        <nav className="mt-8">
-          <MenuItem
-            icon={ShoppingCart}
-            text="Vendas"
-            path="/sales"
-            shortcut="F1"
-            isActive={location.pathname === "/sales"}
-          />
-          <MenuItem
-            icon={Package}
-            text="Produtos"
-            path="/products"
-            shortcut="F2"
-            isActive={location.pathname === "/products"}
-          />
-          <MenuItem
-            icon={BarChart3}
-            text="Relatórios"
-            path="/reports"
-            shortcut="F3"
-            isActive={location.pathname === "/reports"}
-          />
-          <MenuItem
-            icon={Settings}
-            text="Configurações"
-            path="/settings"
-            shortcut="F4"
-            isActive={location.pathname === "/settings"}
-          />
-        </nav>
       </aside>
 
-      {/* Overlay for mobile */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-30 md:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-
       {/* Main Content */}
-      <main className="p-4 md:ml-64 md:p-8 pt-16 md:pt-8">{children}</main>
+      <main className="flex-1 flex flex-col min-h-screen">
+        {/* Top Bar */}
+        <div className={cn(
+          "sticky top-0 z-40 h-16",
+          "bg-surface-light dark:bg-surface-dark",
+          "border-b border-border-light dark:border-border-dark",
+          "flex items-center justify-between px-4"
+        )}>
+          <button
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            className={cn(
+              "lg:hidden p-2 rounded-lg",
+              "hover:bg-hover-light dark:hover:bg-hover-dark",
+              "transition-colors"
+            )}
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+        </div>
 
-      {/* Atalhos de Teclado */}
-      <ShortcutsHelp shortcuts={shortcuts} />
+        {/* Content */}
+        <div className="flex-1 p-4">
+          <Outlet />
+        </div>
+      </main>
     </div>
   );
 }
+
+export default Layout;
