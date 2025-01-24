@@ -1,73 +1,138 @@
 import React from 'react';
-import { Product } from '../../types';
+import { Search } from 'lucide-react';
+import { cn } from '../../lib/utils';
 import { formatCurrency } from '../../utils/format';
-import { AlertTriangle } from 'lucide-react';
+import type { Product } from '../../types';
 
 interface ProductGridProps {
   products: Product[];
-  onProductSelect: (product: Product) => void;
+  onProductSelect: (productId: string) => void;
+  searchTerm: string;
+  onSearchChange: (value: string) => void;
+  selectedCategory: string | null;
+  onCategoryChange: (category: string | null) => void;
 }
 
-export function ProductGrid({ products, onProductSelect }: ProductGridProps) {
+export function ProductGrid({
+  products = [],
+  onProductSelect,
+  searchTerm = '',
+  onSearchChange,
+  selectedCategory,
+  onCategoryChange,
+}: ProductGridProps) {
+  // Extrair categorias únicas dos produtos
+  const categories = React.useMemo(() => {
+    const uniqueCategories = new Set(products.map(p => p?.category).filter(Boolean));
+    return Array.from(uniqueCategories);
+  }, [products]);
+
+  // Filtra produtos
+  const filteredProducts = products.filter((product) => {
+    if (!product) return false;
+    
+    const productName = product.name || '';
+    const searchTermLower = searchTerm.toLowerCase();
+    
+    const matchesSearch = productName.toLowerCase().includes(searchTermLower);
+    const matchesCategory = !selectedCategory || product.category === selectedCategory;
+    
+    return matchesSearch && matchesCategory;
+  });
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-      {products.length === 0 ? (
-        <div className="col-span-full flex flex-col items-center justify-center py-12 text-gray-500 dark:text-gray-400">
-          <p className="text-lg">Nenhum produto encontrado</p>
-          <p className="text-sm">Tente uma busca diferente</p>
+    <div className="flex flex-col h-full">
+      {/* Search and Filters */}
+      <div className="mb-6 space-y-4">
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-text-light-tertiary dark:text-text-dark-tertiary" />
+          <input
+            type="search"
+            value={searchTerm}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder="Buscar produtos..."
+            className={cn(
+              "w-full pl-10 pr-4 py-3 rounded-lg",
+              "bg-surface-light dark:bg-surface-dark",
+              "border border-border-light dark:border-border-dark",
+              "text-text-light-primary dark:text-text-dark-primary",
+              "placeholder:text-text-light-tertiary dark:placeholder:text-text-dark-tertiary",
+              "focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500",
+              "transition duration-200"
+            )}
+          />
         </div>
-      ) : (
-        products.map((product) => (
+
+        {/* Categories */}
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => onCategoryChange(null)}
+            className={cn(
+              "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+              selectedCategory === null
+                ? "bg-primary-500 text-white shadow-md hover:bg-primary-600"
+                : "bg-surface-light dark:bg-surface-dark text-text-light-secondary dark:text-text-dark-secondary hover:bg-hover-light dark:hover:bg-hover-dark"
+            )}
+          >
+            Todos
+          </button>
+          {categories.map((category) => (
+            <button
+              key={category}
+              onClick={() => onCategoryChange(category)}
+              className={cn(
+                "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                selectedCategory === category
+                  ? "bg-primary-500 text-white shadow-md hover:bg-primary-600"
+                  : "bg-surface-light dark:bg-surface-dark text-text-light-secondary dark:text-text-dark-secondary hover:bg-hover-light dark:hover:bg-hover-dark"
+              )}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Products Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 overflow-y-auto">
+        {filteredProducts.map((product) => (
           <button
             key={product.id}
-            onClick={() => onProductSelect(product)}
-            className="group p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all relative overflow-hidden flex flex-col"
+            onClick={() => onProductSelect(product.id)}
+            disabled={product.stock <= 0}
+            className={cn(
+              "flex flex-col p-4 rounded-lg text-left transition-all duration-200",
+              "bg-surface-light dark:bg-surface-dark",
+              "border border-border-light dark:border-border-dark",
+              "hover:shadow-md-light dark:hover:shadow-md-dark",
+              "hover:border-primary-500/50 dark:hover:border-primary-500/50",
+              "group",
+              product.stock <= 0 ? "opacity-50 cursor-not-allowed" : ""
+            )}
           >
-            {/* Indicador de estoque baixo */}
-            {product.stock <= product.minStock && (
-              <div className="absolute top-2 right-2">
-                <AlertTriangle className="text-amber-500" size={16} />
-              </div>
-            )}
-
-            {/* Sem estoque */}
-            {product.stock === 0 && (
-              <div className="absolute inset-0 bg-gray-900/50 dark:bg-gray-900/70 backdrop-blur-[1px] flex items-center justify-center">
-                <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium transform -rotate-12">
-                  Sem Estoque
-                </span>
-              </div>
-            )}
-
+            {/* Product Info */}
             <div className="flex-1">
-              <h3 className="font-medium text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-500 transition-colors line-clamp-2">
+              <h3 className="font-medium text-text-light-primary dark:text-text-dark-primary group-hover:text-primary-600 dark:group-hover:text-primary-400">
                 {product.name}
               </h3>
-              
-              <div className="mt-1 flex items-center gap-2">
-                <span className="text-sm text-gray-500 dark:text-gray-400">
-                  {product.unit === 'kg' ? 'Por Kg' : 'Unidade'}
-                </span>
-                {product.stock > 0 && (
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
-                    • {product.stock} {product.unit === 'kg' ? 'kg' : 'un'} disponível
-                  </span>
-                )}
-              </div>
-            </div>
-
-            <div className="mt-4 flex items-end justify-between">
-              <p className="text-lg font-semibold text-orange-600 dark:text-orange-500">
-                {formatCurrency(product.price)}
+              <p className="text-sm text-text-light-secondary dark:text-text-dark-secondary">
+                {formatCurrency(product.price)} / {product.unit}
               </p>
-
-              <div className="text-xs px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-500 rounded-full">
-                {product.unit === 'kg' ? 'KG' : 'UN'}
-              </div>
+              {product.stock && (
+                <p className="text-sm text-text-light-tertiary dark:text-text-dark-tertiary mt-1">
+                  Estoque: {product.stock} {product.unit}
+                </p>
+              )}
             </div>
           </button>
-        ))
-      )}
+        ))}
+        {filteredProducts.length === 0 && (
+          <div className="text-center text-gray-500 dark:text-gray-400 py-8">
+            Nenhum produto encontrado
+          </div>
+        )}
+      </div>
     </div>
   );
 }

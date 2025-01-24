@@ -1,149 +1,239 @@
-import React from "react";
-import { Trash2, AlertCircle } from "lucide-react";
-import { SaleItem } from "../../types";
-import { formatCurrency } from "../../utils/format";
+import React from 'react';
+import { ShoppingCart, Trash2, Plus, Minus } from 'lucide-react';
+import { cn } from '../../lib/utils';
+import { formatCurrency } from '../../utils/format';
+import type { CartItem, PaymentMethod } from '../../types';
 
 interface CartProps {
-  items: SaleItem[];
-  onUpdateQuantity: (index: number, quantity: number) => void;
-  onRemoveItem: (index: number) => void;
-  onFinalize: () => void;
-  error?: string | null;
-  isProcessing?: boolean;
+  items: CartItem[];
+  onRemoveItem: (productId: string) => void;
+  onQuantityChange: (productId: string, quantity: number) => void;
+  onFinishSale: () => void;
 }
+
+const PAYMENT_METHODS: PaymentMethod[] = [
+  { id: 'cash', name: 'Dinheiro', fee: 0 },
+  { id: 'pix', name: 'PIX', fee: 0.01 },
+  { id: 'credit', name: 'Crédito', fee: 0.03 },
+  { id: 'debit', name: 'Débito', fee: 0.02 },
+];
 
 export function Cart({
   items,
-  onUpdateQuantity,
   onRemoveItem,
-  onFinalize,
-  error,
-  isProcessing = false,
+  onQuantityChange,
+  onFinishSale,
 }: CartProps) {
-  const total = items.reduce((sum, item) => sum + item.total, 0);
+  const [payments, setPayments] = React.useState<Record<string, number>>({});
+
+  // Cálculos
+  const subtotal = items.reduce((sum, item) => sum + item.total, 0);
+  const fees = Object.entries(payments).reduce((sum, [method, amount]) => {
+    const paymentMethod = PAYMENT_METHODS.find(p => p.id === method);
+    return sum + (amount * (paymentMethod?.fee || 0));
+  }, 0);
+  const total = subtotal + fees;
+  const totalPaid = Object.values(payments).reduce((sum, amount) => sum + amount, 0);
+  const remainingAmount = total - totalPaid;
+  const canFinishSale = items.length > 0 && remainingAmount <= 0;
+
+  const handlePaymentChange = (methodId: string, amount: number) => {
+    if (isNaN(amount) || amount < 0) return;
+    setPayments(prev => ({ ...prev, [methodId]: amount }));
+  };
 
   return (
-    <div className="h-full flex flex-col bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-      {/* Cabeçalho */}
-      <div className="p-4 border-b dark:border-gray-700">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Carrinho
-          </h2>
-          <span className="text-sm text-gray-500 dark:text-gray-400">
-            {items.length} {items.length === 1 ? "item" : "itens"}
-          </span>
-        </div>
-
-        {error && (
-          <div className="mt-2 p-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm rounded-lg flex items-center gap-2">
-            <AlertCircle size={16} />
-            {error}
-          </div>
-        )}
+    <div className={cn(
+      "flex flex-col h-full rounded-lg overflow-hidden",
+      "bg-surface-light dark:bg-surface-dark",
+      "border border-border-light dark:border-border-dark",
+      "shadow-md-light dark:shadow-md-dark"
+    )}>
+      {/* Header */}
+      <div className={cn(
+        "p-4 border-b",
+        "border-border-light dark:border-border-dark",
+        "bg-background-light dark:bg-background-dark"
+      )}>
+        <h2 className="text-lg font-semibold text-text-light-primary dark:text-text-dark-primary">
+          Carrinho de Compras
+        </h2>
       </div>
 
-      {/* Lista de Itens */}
-      <div className="flex-1 overflow-auto">
+      {/* Items */}
+      <div className="flex-1 overflow-auto p-4">
         {items.length === 0 ? (
-          <div className="h-full flex items-center justify-center text-gray-500 dark:text-gray-400">
-            Carrinho vazio
+          <div className="flex flex-col items-center justify-center h-full text-text-light-tertiary dark:text-text-dark-tertiary">
+            <ShoppingCart className="h-12 w-12 mb-2" />
+            <p>Carrinho vazio</p>
           </div>
         ) : (
-          items.map((item, index) => (
-            <div
-              key={index}
-              className="p-4 border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50"
-            >
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex-1">
-                  <p className="font-medium text-gray-900 dark:text-white">
+          <ul className="space-y-3">
+            {items.map((item) => (
+              <li 
+                key={item.productId}
+                className={cn(
+                  "p-3 rounded-lg",
+                  "bg-background-light dark:bg-background-dark",
+                  "border border-border-light dark:border-border-dark"
+                )}
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="font-medium text-text-light-primary dark:text-text-dark-primary">
                     {item.productName}
-                  </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {formatCurrency(item.price)} {item.unit === "kg" ? "/kg" : "/un"}
-                  </p>
+                  </h3>
+                  <button
+                    onClick={() => onRemoveItem(item.productId)}
+                    className="text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 p-1"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
                     <button
-                      onClick={() => onUpdateQuantity(index, item.quantity - 1)}
-                      className="w-8 h-8 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-l-lg"
+                      onClick={() => onQuantityChange(item.productId, item.quantity - (item.unit === 'kg' ? 0.1 : 1))}
+                      disabled={item.quantity <= (item.unit === 'kg' ? 0.1 : 1)}
+                      className={cn(
+                        "p-1 rounded transition-colors",
+                        "hover:bg-hover-light dark:hover:bg-hover-dark",
+                        "text-text-light-secondary dark:text-text-dark-secondary",
+                        "disabled:opacity-50 disabled:cursor-not-allowed"
+                      )}
                     >
-                      -
+                      <Minus className="h-4 w-4" />
                     </button>
+
                     <input
                       type="number"
                       value={item.quantity}
-                      onChange={(e) =>
-                        onUpdateQuantity(index, Number(e.target.value))
-                      }
-                      className="w-16 h-8 text-center border-y dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                      min="0"
-                      step={item.unit === "kg" ? "0.1" : "1"}
+                      onChange={(e) => onQuantityChange(item.productId, parseFloat(e.target.value))}
+                      step={item.unit === 'kg' ? '0.1' : '1'}
+                      min={item.unit === 'kg' ? '0.1' : '1'}
+                      className={cn(
+                        "w-16 text-center rounded-lg",
+                        "bg-surface-light dark:bg-surface-dark",
+                        "border border-border-light dark:border-border-dark",
+                        "text-text-light-primary dark:text-text-dark-primary",
+                        "focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                      )}
                     />
+
                     <button
-                      onClick={() => onUpdateQuantity(index, item.quantity + 1)}
-                      className="w-8 h-8 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-r-lg"
+                      onClick={() => onQuantityChange(item.productId, item.quantity + (item.unit === 'kg' ? 0.1 : 1))}
+                      className={cn(
+                        "p-1 rounded transition-colors",
+                        "hover:bg-hover-light dark:hover:bg-hover-dark",
+                        "text-text-light-secondary dark:text-text-dark-secondary"
+                      )}
                     >
-                      +
+                      <Plus className="h-4 w-4" />
                     </button>
                   </div>
 
-                  <button
-                    onClick={() => onRemoveItem(index)}
-                    className="p-2 text-gray-400 hover:text-red-500 dark:hover:text-red-400"
-                    title="Remover item"
-                  >
-                    <Trash2 size={18} />
-                  </button>
+                  <div className="text-right">
+                    <div className="text-sm text-text-light-secondary dark:text-text-dark-secondary">
+                      {formatCurrency(item.price)} / {item.unit}
+                    </div>
+                    <div className="font-medium text-text-light-primary dark:text-text-dark-primary">
+                      {formatCurrency(item.total)}
+                    </div>
+                  </div>
                 </div>
-              </div>
-
-              <div className="mt-2 text-right font-medium text-gray-900 dark:text-white">
-                {formatCurrency(item.total)}
-              </div>
-            </div>
-          ))
+              </li>
+            ))}
+          </ul>
         )}
       </div>
 
-      {/* Footer com Total e Botão de Finalizar */}
-      <div className="p-4 border-t dark:border-gray-700">
-        <div className="flex justify-between items-center text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          <span>Total</span>
-          <span>{formatCurrency(total)}</span>
+      {/* Payment Methods */}
+      {items.length > 0 && (
+        <div className="p-4 border-t border-border-light dark:border-border-dark">
+          <h3 className="font-medium mb-3 text-text-light-primary dark:text-text-dark-primary">
+            Formas de Pagamento
+          </h3>
+          <div className="space-y-2">
+            {PAYMENT_METHODS.map((method) => (
+              <div 
+                key={method.id}
+                className={cn(
+                  "flex items-center justify-between p-3 rounded-lg",
+                  "bg-background-light dark:bg-background-dark",
+                  "border border-border-light dark:border-border-dark"
+                )}
+              >
+                <div>
+                  <span className="text-text-light-primary dark:text-text-dark-primary">
+                    {method.name}
+                  </span>
+                  <span className="ml-2 text-sm text-text-light-tertiary dark:text-text-dark-tertiary">
+                    (Taxa: {(method.fee * 100).toFixed(1)}%)
+                  </span>
+                </div>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={payments[method.id] || ''}
+                  onChange={(e) => handlePaymentChange(method.id, parseFloat(e.target.value))}
+                  className={cn(
+                    "w-32 px-3 py-1 rounded-lg",
+                    "bg-surface-light dark:bg-surface-dark",
+                    "border border-border-light dark:border-border-dark",
+                    "text-text-light-primary dark:text-text-dark-primary",
+                    "focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                  )}
+                  placeholder="0,00"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Summary */}
+      <div className="p-4 border-t border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark">
+        <div className="space-y-2">
+          <div className="flex justify-between text-text-light-secondary dark:text-text-dark-secondary">
+            <span>Subtotal</span>
+            <span>{formatCurrency(subtotal)}</span>
+          </div>
+          <div className="flex justify-between text-text-light-secondary dark:text-text-dark-secondary">
+            <span>Taxas</span>
+            <span>{formatCurrency(fees)}</span>
+          </div>
+          <div className="flex justify-between text-lg font-semibold text-text-light-primary dark:text-text-dark-primary">
+            <span>Total</span>
+            <span>{formatCurrency(total)}</span>
+          </div>
+          <div className="flex justify-between text-text-light-secondary dark:text-text-dark-secondary">
+            <span>Pago</span>
+            <span>{formatCurrency(totalPaid)}</span>
+          </div>
+          {remainingAmount > 0 && (
+            <div className="flex justify-between text-red-500 dark:text-red-400 font-medium">
+              <span>Falta</span>
+              <span>{formatCurrency(remainingAmount)}</span>
+            </div>
+          )}
         </div>
 
         <button
-          className="w-full py-3 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          onClick={onFinalize}
-          disabled={items.length === 0 || isProcessing}
-        >
-          {isProcessing ? (
-            <span className="flex items-center justify-center gap-2">
-              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                  fill="none"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                />
-              </svg>
-              Processando...
-            </span>
-          ) : (
-            "Finalizar Venda"
+          onClick={onFinishSale}
+          disabled={!canFinishSale}
+          className={cn(
+            "w-full mt-4 py-3 px-4 rounded-lg font-medium transition-all duration-200",
+            canFinishSale
+              ? "bg-primary-500 text-white hover:bg-primary-600 shadow-md hover:shadow-lg"
+              : "bg-gray-100 dark:bg-gray-800 text-text-light-disabled dark:text-text-dark-disabled cursor-not-allowed"
           )}
+        >
+          {remainingAmount > 0
+            ? `Falta ${formatCurrency(remainingAmount)}`
+            : items.length === 0
+            ? "Carrinho vazio"
+            : "Finalizar Venda"}
         </button>
       </div>
     </div>
