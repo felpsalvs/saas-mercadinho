@@ -1,8 +1,8 @@
-import React from 'react';
-import { ShoppingCart, Trash2, Plus, Minus } from 'lucide-react';
-import { cn } from '../../lib/utils';
-import { formatCurrency } from '../../utils/format';
-import type { CartItem, PaymentMethod } from '../../types';
+import React from "react";
+import { ShoppingCart, Trash2, Plus, Minus } from "lucide-react";
+import { cn } from "../../lib/utils";
+import { formatCurrency } from "../../utils/format";
+import type { CartItem, PaymentMethod } from "../../types";
 
 interface CartProps {
   items: CartItem[];
@@ -12,10 +12,10 @@ interface CartProps {
 }
 
 const PAYMENT_METHODS: PaymentMethod[] = [
-  { id: 'cash', name: 'Dinheiro', fee: 0 },
-  { id: 'pix', name: 'PIX', fee: 0.01 },
-  { id: 'credit', name: 'Crédito', fee: 0.03 },
-  { id: 'debit', name: 'Débito', fee: 0.02 },
+  { id: "cash", name: "Dinheiro", fee: 0 },
+  { id: "pix", name: "PIX", fee: 0.01 },
+  { id: "credit", name: "Crédito", fee: 0.03 },
+  { id: "debit", name: "Débito", fee: 0.02 },
 ];
 
 export function Cart({
@@ -29,32 +29,39 @@ export function Cart({
   // Cálculos
   const subtotal = items.reduce((sum, item) => sum + item.total, 0);
   const fees = Object.entries(payments).reduce((sum, [method, amount]) => {
-    const paymentMethod = PAYMENT_METHODS.find(p => p.id === method);
-    return sum + (amount * (paymentMethod?.fee || 0));
+    const paymentMethod = PAYMENT_METHODS.find((p) => p.id === method);
+    return sum + amount * (paymentMethod?.fee || 0);
   }, 0);
   const total = subtotal + fees;
-  const totalPaid = Object.values(payments).reduce((sum, amount) => sum + amount, 0);
+  const totalPaid = Object.values(payments).reduce(
+    (sum, amount) => sum + amount,
+    0
+  );
   const remainingAmount = total - totalPaid;
   const canFinishSale = items.length > 0 && remainingAmount <= 0;
 
   const handlePaymentChange = (methodId: string, amount: number) => {
     if (isNaN(amount) || amount < 0) return;
-    setPayments(prev => ({ ...prev, [methodId]: amount }));
+    setPayments((prev) => ({ ...prev, [methodId]: amount }));
   };
 
   return (
-    <div className={cn(
-      "flex flex-col h-full rounded-lg overflow-hidden",
-      "bg-surface-light dark:bg-surface-dark",
-      "border border-border-light dark:border-border-dark",
-      "shadow-md-light dark:shadow-md-dark"
-    )}>
+    <div
+      className={cn(
+        "flex flex-col h-full rounded-lg overflow-hidden transition-all duration-200",
+        "bg-surface-light dark:bg-surface-dark",
+        "border border-border-light dark:border-border-dark",
+        "shadow-md-light dark:shadow-md-dark hover:shadow-lg-light dark:hover:shadow-lg-dark"
+      )}
+    >
       {/* Header */}
-      <div className={cn(
-        "p-4 border-b",
-        "border-border-light dark:border-border-dark",
-        "bg-background-light dark:bg-background-dark"
-      )}>
+      <div
+        className={cn(
+          "p-4 border-b",
+          "border-border-light dark:border-border-dark",
+          "bg-background-light dark:bg-background-dark"
+        )}
+      >
         <h2 className="text-lg font-semibold text-text-light-primary dark:text-text-dark-primary">
           Carrinho de Compras
         </h2>
@@ -70,7 +77,7 @@ export function Cart({
         ) : (
           <ul className="space-y-3">
             {items.map((item) => (
-              <li 
+              <li
                 key={item.productId}
                 className={cn(
                   "p-3 rounded-lg",
@@ -93,8 +100,13 @@ export function Cart({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => onQuantityChange(item.productId, item.quantity - (item.unit === 'kg' ? 0.1 : 1))}
-                      disabled={item.quantity <= (item.unit === 'kg' ? 0.1 : 1)}
+                      onClick={() =>
+                        onQuantityChange(
+                          item.productId,
+                          item.quantity - (item.unit === "kg" ? 0.1 : 1)
+                        )
+                      }
+                      disabled={item.quantity <= (item.unit === "kg" ? 0.1 : 1)}
                       className={cn(
                         "p-1 rounded transition-colors",
                         "hover:bg-hover-light dark:hover:bg-hover-dark",
@@ -108,9 +120,14 @@ export function Cart({
                     <input
                       type="number"
                       value={item.quantity}
-                      onChange={(e) => onQuantityChange(item.productId, parseFloat(e.target.value))}
-                      step={item.unit === 'kg' ? '0.1' : '1'}
-                      min={item.unit === 'kg' ? '0.1' : '1'}
+                      onChange={(e) =>
+                        onQuantityChange(
+                          item.productId,
+                          parseFloat(e.target.value)
+                        )
+                      }
+                      step={item.unit === "kg" ? "0.1" : "1"}
+                      min={item.unit === "kg" ? "0.1" : "1"}
                       className={cn(
                         "w-16 text-center rounded-lg",
                         "bg-surface-light dark:bg-surface-dark",
@@ -121,7 +138,12 @@ export function Cart({
                     />
 
                     <button
-                      onClick={() => onQuantityChange(item.productId, item.quantity + (item.unit === 'kg' ? 0.1 : 1))}
+                      onClick={() =>
+                        onQuantityChange(
+                          item.productId,
+                          item.quantity + (item.unit === "kg" ? 0.1 : 1)
+                        )
+                      }
                       className={cn(
                         "p-1 rounded transition-colors",
                         "hover:bg-hover-light dark:hover:bg-hover-dark",
@@ -155,7 +177,7 @@ export function Cart({
           </h3>
           <div className="space-y-2">
             {PAYMENT_METHODS.map((method) => (
-              <div 
+              <div
                 key={method.id}
                 className={cn(
                   "flex items-center justify-between p-3 rounded-lg",
@@ -175,8 +197,10 @@ export function Cart({
                   type="number"
                   min="0"
                   step="0.01"
-                  value={payments[method.id] || ''}
-                  onChange={(e) => handlePaymentChange(method.id, parseFloat(e.target.value))}
+                  value={payments[method.id] || ""}
+                  onChange={(e) =>
+                    handlePaymentChange(method.id, parseFloat(e.target.value))
+                  }
                   className={cn(
                     "w-32 px-3 py-1 rounded-lg",
                     "bg-surface-light dark:bg-surface-dark",
