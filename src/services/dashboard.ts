@@ -14,6 +14,8 @@ export interface DashboardMetrics {
     id: string;
     name: string;
     quantity: number;
+    stock: number;
+    min_stock: number;
   }[];
 }
 
@@ -22,7 +24,7 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     const today = new Date();
     const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    
+
     // Vendas do dia
     const { data: todaySales, error: todayError } = await supabase
       .from('sales')
@@ -56,7 +58,7 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     // Produtos com estoque baixo
     const { data: lowStock, error: lowStockError } = await supabase
       .from('products')
-      .select('id, name, stock')
+      .select('id, name, stock, min_stock')
       .lt('stock', 10)
       .order('stock', { ascending: true })
       .limit(5);
@@ -66,9 +68,10 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     // Calcula métricas
     const totalSalesToday = todaySales?.reduce((sum, sale) => sum + (sale.total || 0), 0) || 0;
     const totalSalesMonth = monthSales?.reduce((sum, sale) => sum + (sale.total || 0), 0) || 0;
-    const averageTicket = monthSales?.length 
-      ? totalSalesMonth / monthSales.length 
+    const averageTicket = monthSales?.length
+      ? totalSalesMonth / monthSales.length
       : 0;
+
 
     // Formata produtos mais vendidos
     const formattedTopProducts = topProducts?.map(item => ({
@@ -82,7 +85,9 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     const formattedLowStock = lowStock?.map(product => ({
       id: product.id,
       name: product.name,
-      quantity: product.stock
+      quantity: product.stock,
+      stock: product.stock,
+      min_stock: product.min_stock
     })) || [];
 
     return {
