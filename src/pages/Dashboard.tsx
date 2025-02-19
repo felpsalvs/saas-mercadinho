@@ -1,6 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { getDashboardMetrics, type DashboardMetrics } from '../services/dashboard';
-import { formatCurrency } from '../utils/format';
+import { useEffect, useState } from "react";
+import {
+  getDashboardMetrics,
+  type DashboardMetrics,
+} from "../services/dashboard";
+import { formatCurrency } from "../utils/format";
 
 export default function Dashboard() {
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
@@ -16,7 +19,7 @@ export default function Dashboard() {
       const data = await getDashboardMetrics();
       setMetrics(data);
     } catch (err) {
-      setError('Erro ao carregar métricas');
+      setError("Erro ao carregar métricas");
       console.error(err);
     } finally {
       setLoading(false);
@@ -44,9 +47,9 @@ export default function Dashboard() {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
-      
+
       {/* Métricas principais */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <MetricCard
           title="Vendas Hoje"
           value={formatCurrency(metrics.totalSalesToday)}
@@ -82,7 +85,9 @@ export default function Dashboard() {
                   <tr key={product.id} className="border-b">
                     <td className="py-2">{product.name}</td>
                     <td className="text-right">{product.total_quantity}</td>
-                    <td className="text-right">{formatCurrency(product.total_sales)}</td>
+                    <td className="text-right">
+                      {formatCurrency(product.total_sales)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -134,7 +139,15 @@ export default function Dashboard() {
   );
 }
 
-function MetricCard({ title, value, icon }: { title: string; value: string; icon: string }) {
+function MetricCard({
+  title,
+  value,
+  icon,
+}: {
+  title: string;
+  value: string;
+  icon: string;
+}) {
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex items-center justify-between mb-2">
