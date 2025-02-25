@@ -1,14 +1,14 @@
-import React from "react";
-import { createBrowserRouter, RouterProvider, createRoutesFromElements, Route, Routes } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, createRoutesFromElements, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 import Sales from "./pages/Sales";
 import Products from "./pages/Products";
 import { AuthProvider } from "./context/AuthProvider";
 import { ThemeProvider } from "./context/ThemeProvider";
 import { ProtectedRoute } from "./ProtectedRoute";
-import LoginPage from "./components/LoginPage";
-import RegisterPage from "./components/RegisterPage";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
 import Dashboard from "./pages/Dashboard";
+import { Notifications } from './components/ui/Notifications';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -30,11 +30,6 @@ const router = createBrowserRouter(
         </ProtectedRoute>
       } />
       <Route path="/" element={
-        <ProtectedRoute>
-          <Dashboard />
-        </ProtectedRoute>
-      } />
-      <Route path="/dashboard" element={
         <ProtectedRoute>
           <Dashboard />
         </ProtectedRoute>
@@ -67,17 +62,18 @@ const router = createBrowserRouter(
         </div>
       } />
     </Route>
-  ),
-  {
-    future: {
-      v7_startTransition: true,
-      v7_relativeSplatPath: true
-    }
-  }
+  )
 );
 
 function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <Notifications />
+        <RouterProvider router={router} />
+      </AuthProvider>
+    </ThemeProvider>
+  );
 }
 
 export default App;

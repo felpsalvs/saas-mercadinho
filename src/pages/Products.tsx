@@ -1,24 +1,58 @@
-import React, { useState } from "react";
-import { Plus, Search, Edit2, Trash2, Package } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Search } from "lucide-react";
 import { StockMovementModal } from "../components/products/StockMovementModal";
 import { NewProductForm } from "../components/products/NewProductForm";
 import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
-import { useProducts } from "../hooks/useProducts";
 import { updateStock } from "../services/products";
 import type { Product, StockMovement } from "../types";
+import { useProductStore, useUIStore } from '../stores';
+import { DataTable } from '../components/ui/DataTable';
+import { useAsync } from '../hooks/useAsync';
+
+// Definindo o tipo correto para Product
+interface ProductData extends Product {
+  minStock: number;
+  unit: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export default function Products() {
-  const { products, loading, error, reload } = useProducts();
+  const { products, setProducts, setLoading, setError } = useProductStore();
+  const { setLoading: setUILoading } = useUIStore();
   const [search, setSearch] = useState("");
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<ProductData | null>(null);
   const [showStockModal, setShowStockModal] = useState(false);
   const [showNewProductForm, setShowNewProductForm] = useState(false);
+
+  const { execute: fetchProducts, loading, error } = useAsync(async () => {
+    try {
+      setLoading(true);
+      setUILoading(true);
+      const response = await fetch('/api/products');
+      const data = await response.json();
+      setProducts(data);
+      return data;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar produtos';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+      setUILoading(false);
+    }
+  });
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
   const handleStockMovement = async (
     movement: Omit<StockMovement, "id" | "createdAt">
   ) => {
     try {
+      setUILoading(true);
       await updateStock(
         movement.productId,
         movement.quantity,
@@ -26,30 +60,60 @@ export default function Products() {
         movement.reason,
         movement.notes
       );
-      reload();
+      await fetchProducts(); // Recarrega os produtos após atualizar o estoque
     } catch (err) {
-      console.error(err);
-      alert("Erro ao atualizar estoque");
+      setError(err instanceof Error ? err.message : 'Erro ao atualizar estoque');
+    } finally {
+      setUILoading(false);
     }
   };
 
+  const columns = [
+    { 
+      header: 'Nome', 
+      accessor: (product: ProductData) => product.name,
+      sortable: true 
+    },
+    { 
+      header: 'Preço', 
+      accessor: (product: ProductData) => `R$ ${product.price.toFixed(2)}`,
+      sortable: true 
+    },
+    { 
+      header: 'Estoque', 
+      accessor: (product: ProductData) => product.stock,
+      sortable: true 
+    },
+    { 
+      header: 'Estoque Mínimo', 
+      accessor: (product: ProductData) => product.minStock,
+      sortable: true 
+    },
+    { 
+      header: 'Unidade', 
+      accessor: (product: ProductData) => product.unit,
+      sortable: true 
+    }
+  ];
+
   if (loading) return <LoadingSpinner />;
-  if (error) return <ErrorMessage message={error} onRetry={reload} />;
+  if (error) return <ErrorMessage message={error} onRetry={fetchProducts} />;
+
+  const filteredProducts = products.filter((p) =>
+    p.name.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-6xl mx-auto p-4">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h1 className="text-2xl font-bold">Produtos</h1>
         <button
           onClick={() => setShowNewProductForm(true)}
-          className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
         >
           <Plus size={20} />
           Novo Produto
         </button>
-        {showNewProductForm && (
-          <NewProductForm onClose={() => setShowNewProductForm(false)} />
-        )}
       </div>
 
       <div className="mb-6 flex flex-col sm:flex-row gap-4">
@@ -59,75 +123,22 @@ export default function Products() {
             placeholder="Pesquisar produtos..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border rounded-lg"
+            className="w-full pl-10 pr-4 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white"
           />
           <Search className="absolute left-3 top-2.5 text-gray-400" size={20} />
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-x-auto">
-        <table className="w-full min-w-[640px]">
-          <thead>
-            <tr className="border-b">
-              <th className="text-left p-4">Produto</th>
-              <th className="text-left p-4">Preço</th>
-              <th className="text-left p-4">Estoque</th>
-              <th className="text-left p-4">Estoque Mínimo</th>
-              <th className="text-left p-4">Unidade</th>
-              <th className="p-4"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {products
-              .filter((p) =>
-                p.name.toLowerCase().includes(search.toLowerCase())
-              )
-              .map((product) => (
-                <tr key={product.id} className="border-b hover:bg-gray-50">
-                  <td className="p-4">{product.name}</td>
-                  <td className="p-4">R$ {product.price.toFixed(2)}</td>
-                  <td className="p-4">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                      ${
-                        product.stock <= product.minStock
-                          ? "bg-red-100 text-red-800"
-                          : "bg-green-100 text-green-800"
-                      }`}
-                    >
-                      {product.stock} {product.unit}
-                    </span>
-                  </td>
-                  <td className="p-4">
-                    {product.minStock} {product.unit}
-                  </td>
-                  <td className="p-4">
-                    {product.unit === "kg" ? "Kg" : "Unidade"}
-                  </td>
-                  <td className="p-4">
-                    <div className="flex gap-2 justify-end">
-                      <button
-                        onClick={() => {
-                          setSelectedProduct(product);
-                          setShowStockModal(true);
-                        }}
-                        className="p-1 text-gray-400 hover:text-orange-600"
-                        title="Gerenciar Estoque"
-                      >
-                        <Package size={18} />
-                      </button>
-                      <button className="p-1 text-gray-400 hover:text-orange-600">
-                        <Edit2 size={18} />
-                      </button>
-                      <button className="p-1 text-gray-400 hover:text-red-600">
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+        <DataTable
+          data={filteredProducts}
+          columns={columns}
+          isLoading={loading}
+          onRowClick={(product) => {
+            setSelectedProduct(product as ProductData);
+            setShowStockModal(true);
+          }}
+        />
       </div>
 
       {showStockModal && selectedProduct && (
@@ -140,6 +151,16 @@ export default function Products() {
             setSelectedProduct(null);
           }}
           onSave={handleStockMovement}
+        />
+      )}
+
+      {showNewProductForm && (
+        <NewProductForm 
+          onClose={() => setShowNewProductForm(false)}
+          onSuccess={() => {
+            setShowNewProductForm(false);
+            fetchProducts();
+          }}
         />
       )}
     </div>

@@ -1,5 +1,5 @@
-import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from './context/AuthProvider';
+import { Navigate } from 'react-router-dom';
+import { useUserStore } from './stores';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -7,25 +7,24 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, requireAuth = true }: ProtectedRouteProps) {
-  const { user, loading } = useAuth();
-  const location = useLocation();
+  const { user, isLoading } = useUserStore();
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   if (requireAuth && !user) {
     // Usuário não está autenticado mas precisa estar
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/login" replace />;
   }
 
   if (!requireAuth && user) {
     // Usuário está autenticado mas não deveria estar (ex: página de login)
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;

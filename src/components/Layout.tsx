@@ -4,12 +4,15 @@ import { useTheme } from '../context/ThemeProvider';
 import { Sun, Moon, Menu, ShoppingCart, Package, BarChart3, Settings } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useUserStore, useUIStore } from '../stores';
 
 function Layout() {
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
   const [isMobile, setIsMobile] = React.useState(false);
+  const { user } = useUserStore();
+  const { isLoading } = useUIStore();
 
   useEffect(() => {
     const checkMobile = () => {
@@ -48,6 +51,12 @@ function Layout() {
       "bg-background-light dark:bg-background-dark",
       "text-text-light-primary dark:text-text-dark-primary"
     )}>
+      {isLoading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      )}
+
       <AnimatePresence>
         {isMobile && isSidebarOpen && <Backdrop />}
       </AnimatePresence>
@@ -74,7 +83,7 @@ function Layout() {
             transition={{ delay: 0.2 }}
             className="p-4 border-b border-border-light dark:border-border-dark"
           >
-            <h1 className="text-xl font-bold">Market SaaS</h1>
+            <h1 className="text-xl font-bold text-orange-500">Bem+ Economia</h1>
           </motion.div>
 
           {/* Menu Items */}
