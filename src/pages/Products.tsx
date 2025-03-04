@@ -5,17 +5,24 @@ import { NewProductForm } from "../components/products/NewProductForm";
 import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 import { ErrorMessage } from "../components/ui/ErrorMessage";
 import { updateStock } from "../services/products";
-import type { Product, StockMovement } from "../types";
+import type { StockMovement } from "../types";
 import { useProductStore, useUIStore } from '../stores';
 import { DataTable } from '../components/ui/DataTable';
 import { useAsync } from '../hooks/useAsync';
 
-// Definindo o tipo correto para Product
-interface ProductData extends Product {
-  minStock: number;
-  unit: string;
-  createdAt: string;
-  updatedAt: string;
+// Definindo o tipo para ProductData baseado no tipo usado no store
+interface ProductData {
+  id: string;
+  name: string;
+  price: number;
+  description: string;
+  stock: number;
+  category: string;
+  // Campos adicionais para a tabela
+  minStock?: number;
+  unit?: "kg" | "unit";
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export default function Products() {
@@ -86,12 +93,12 @@ export default function Products() {
     },
     { 
       header: 'Estoque Mínimo', 
-      accessor: (product: ProductData) => product.minStock,
+      accessor: (product: ProductData) => product.minStock || 0,
       sortable: true 
     },
     { 
       header: 'Unidade', 
-      accessor: (product: ProductData) => product.unit,
+      accessor: (product: ProductData) => product.unit || 'unit',
       sortable: true 
     }
   ];
@@ -99,6 +106,7 @@ export default function Products() {
   if (loading) return <LoadingSpinner />;
   if (error) return <ErrorMessage message={error} onRetry={fetchProducts} />;
 
+  // Usar os produtos diretamente, já que o tipo ProductData é compatível
   const filteredProducts = products.filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase())
   );

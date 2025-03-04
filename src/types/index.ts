@@ -1,3 +1,5 @@
+import React from 'react';
+
 export interface Product {
   id: string;
   name: string;
@@ -66,6 +68,22 @@ export interface Payment {
   timestamp: Date;
   status: "pending" | "approved" | "rejected" | "cancelled";
   notes?: string;
+}
+
+export interface PaymentMethod {
+  id: string;
+  name: string;
+  fee: number;
+  icon?: React.ComponentType<{ className?: string }>;
+}
+
+export interface CartItem {
+  productId: string;
+  name: string;
+  quantity: number;
+  price: number;
+  unit?: "kg" | "unit";
+  total?: number;
 }
 
 export interface User {

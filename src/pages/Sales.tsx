@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useProducts } from '../hooks/useProducts';
 import { ProductGrid } from '../components/sales/ProductGrid';
 import { Cart } from '../components/sales/Cart';
@@ -7,15 +7,9 @@ import { createSale, getDailySummary } from '../services/sales';
 import { toast } from 'react-hot-toast';
 import { formatCurrency } from '../utils/format';
 import { useCartStore, useProductStore, useUIStore } from '../stores';
-
-interface CartItem {
-  productId: string;
-  productName: string;
-  quantity: number;
-  price: number;
-  unit: "kg" | "unit";
-  total: number;
-}
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
+import { cn } from '../lib/utils';
+import { CartItem } from '../types';
 
 interface PaymentInput {
   method: "pix" | "cash" | "credit" | "debit";
@@ -24,14 +18,17 @@ interface PaymentInput {
 
 export default function Sales() {
   const { products, loading } = useProducts();
-  const { items, total, addItem, removeItem, updateQuantity } = useCartStore();
+  const { items, total, addItem, removeItem, updateQuantity, clearCart } = useCartStore();
   const { setLoading } = useUIStore();
   const [payments, setPayments] = useState<PaymentInput[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [dailySummary, setDailySummary] = useState<any>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState<'products' | 'cart'>('products');
 
   // Carrega o resumo diário ao montar o componente
-  React.useEffect(() => {
+  useEffect(() => {
     loadDailySummary();
   }, []);
 
@@ -43,6 +40,51 @@ export default function Sales() {
       console.error('Erro ao carregar resumo:', error);
     }
   }
+
+  // Configuração dos atalhos de teclado específicos para a página de vendas
+  const salesShortcuts = {
+    'F6': {
+      handler: () => setActiveSection('products'),
+      description: 'Focar na lista de produtos',
+      scope: 'vendas'
+    },
+    'F7': {
+      handler: () => setActiveSection('cart'),
+      description: 'Focar no carrinho',
+      scope: 'vendas'
+    },
+    'F8': {
+      handler: () => handleFinalizeSale(),
+      description: 'Finalizar venda',
+      scope: 'vendas'
+    },
+    'F9': {
+      handler: () => clearCart(),
+      description: 'Limpar carrinho',
+      scope: 'vendas'
+    },
+    'CTRL+F': {
+      handler: () => {
+        // Focar no campo de busca
+        const searchInput = document.getElementById('product-search');
+        if (searchInput) {
+          searchInput.focus();
+        }
+      },
+      description: 'Buscar produtos',
+      scope: 'vendas'
+    },
+    'CTRL+P': {
+      handler: () => {
+        // Simular impressão de recibo
+        toast.success('Imprimindo recibo...');
+      },
+      description: 'Imprimir recibo',
+      scope: 'vendas'
+    },
+  };
+
+  const { getShortcutsList } = useKeyboardShortcuts(salesShortcuts, { scope: 'vendas' });
 
   const handleProductSelect = (productId: string) => {
     const product = products.find((p) => p.id === productId);
@@ -58,7 +100,8 @@ export default function Sales() {
           productId,
           quantity: 1,
           price: product.price,
-          name: product.name
+          name: product.name,
+          unit: product.unit
         });
       }
     } else {
@@ -79,10 +122,11 @@ export default function Sales() {
       updateQuantity(product.id, existingItem.quantity + weight);
     } else {
       addItem({
-        productId,
+        productId: product.id,
         quantity: weight,
         price: product.price,
-        name: product.name
+        name: product.name,
+        unit: product.unit
       });
     }
 
@@ -118,7 +162,10 @@ export default function Sales() {
       }
 
       // Verifica se o total dos pagamentos corresponde ao total da venda
-      const saleTotal = items.reduce((sum, item) => sum + item.total, 0);
+      const saleTotal = items.reduce((sum, item) => {
+        const itemTotal = item.total !== undefined ? item.total : item.price * item.quantity;
+        return sum + itemTotal;
+      }, 0);
       const paymentsTotal = payments.reduce((sum, p) => sum + p.amount, 0);
 
       if (paymentsTotal !== saleTotal) {
@@ -130,7 +177,7 @@ export default function Sales() {
       await createSale(items, payments);
       
       // Limpa o carrinho e pagamentos
-      removeItem();
+      clearCart();
       setPayments([]);
       
       // Atualiza o resumo diário
@@ -145,19 +192,45 @@ export default function Sales() {
     }
   };
 
-  const handleCheckout = async () => {
-    try {
-      setLoading(true);
-      // Implementar lógica de checkout
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="h-full flex flex-col lg:flex-row gap-4">
+      {/* Barra de atalhos */}
+      <div className={cn(
+        "bg-surface-light dark:bg-surface-dark",
+        "border border-border-light dark:border-border-dark",
+        "rounded-lg p-2 mb-2 flex flex-wrap gap-2 text-pdv-xs"
+      )}>
+        <div className="flex items-center px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded">
+          <kbd className="px-1 bg-gray-200 dark:bg-gray-700 rounded mr-1">F6</kbd>
+          <span>Produtos</span>
+        </div>
+        <div className="flex items-center px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded">
+          <kbd className="px-1 bg-gray-200 dark:bg-gray-700 rounded mr-1">F7</kbd>
+          <span>Carrinho</span>
+        </div>
+        <div className="flex items-center px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded">
+          <kbd className="px-1 bg-gray-200 dark:bg-gray-700 rounded mr-1">F8</kbd>
+          <span>Finalizar</span>
+        </div>
+        <div className="flex items-center px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded">
+          <kbd className="px-1 bg-gray-200 dark:bg-gray-700 rounded mr-1">F9</kbd>
+          <span>Limpar</span>
+        </div>
+        <div className="flex items-center px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded">
+          <kbd className="px-1 bg-gray-200 dark:bg-gray-700 rounded mr-1">Ctrl+F</kbd>
+          <span>Buscar</span>
+        </div>
+        <div className="flex items-center px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded">
+          <kbd className="px-1 bg-gray-200 dark:bg-gray-700 rounded mr-1">Ctrl+P</kbd>
+          <span>Imprimir</span>
+        </div>
+      </div>
+
       {/* Área de produtos */}
-      <div className="flex-1 flex flex-col gap-4">
+      <div className={cn(
+        "flex-1 flex flex-col gap-4",
+        activeSection === 'products' ? 'ring-2 ring-primary-500 rounded-lg p-2' : 'p-2'
+      )}>
         {/* Balança */}
         {selectedProduct && (
           <ScaleInput
@@ -171,27 +244,39 @@ export default function Sales() {
         <ProductGrid
           products={products}
           onProductSelect={handleProductSelect}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          selectedCategory={selectedCategory}
+          onCategoryChange={setSelectedCategory}
         />
       </div>
 
       {/* Carrinho e Resumo */}
-      <div className="w-full lg:w-96 flex flex-col gap-4">
+      <div className={cn(
+        "w-full lg:w-96 flex flex-col gap-4",
+        activeSection === 'cart' ? 'ring-2 ring-primary-500 rounded-lg p-2' : 'p-2'
+      )}>
         <Cart
-          items={items}
+          items={items.map(item => ({
+            ...item,
+            total: item.total !== undefined ? item.total : item.price * item.quantity
+          }))}
           payments={payments}
           onQuantityChange={handleQuantityChange}
           onRemoveItem={handleRemoveItem}
           onAddPayment={handleAddPayment}
           onRemovePayment={handleRemovePayment}
-          onFinalize={handleFinalizeSale}
+          onFinishSale={handleFinalizeSale}
         />
 
         {/* Resumo do dia */}
         {dailySummary && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-            <h2 className="text-lg font-semibold mb-4">Resumo do Dia</h2>
+          <div className="bg-surface-light dark:bg-surface-dark rounded-lg shadow p-4 border border-border-light dark:border-border-dark">
+            <h2 className="text-pdv-lg font-semibold mb-4 text-text-light-primary dark:text-text-dark-primary">
+              Resumo do Dia
+            </h2>
             
-            <div className="space-y-2">
+            <div className="space-y-2 text-pdv-base">
               <div className="flex justify-between">
                 <span>Total Vendas:</span>
                 <span>{dailySummary.totalSales}</span>
@@ -202,12 +287,12 @@ export default function Sales() {
                 <span>{formatCurrency(dailySummary.totalAmount)}</span>
               </div>
               
-              <div className="flex justify-between text-green-500">
+              <div className="flex justify-between text-pdv-success">
                 <span>Lucro Bruto:</span>
                 <span>{formatCurrency(dailySummary.totalProfit)}</span>
               </div>
               
-              <div className="flex justify-between text-red-500">
+              <div className="flex justify-between text-pdv-error">
                 <span>Taxas:</span>
                 <span>{formatCurrency(dailySummary.totalFees)}</span>
               </div>
@@ -220,9 +305,9 @@ export default function Sales() {
 
             {/* Resumo por forma de pagamento */}
             <div className="mt-4">
-              <h3 className="font-medium mb-2">Por Forma de Pagamento:</h3>
+              <h3 className="font-medium mb-2 text-pdv-sm">Por Forma de Pagamento:</h3>
               {Object.entries(dailySummary.byPaymentMethod).map(([method, data]: [string, any]) => (
-                <div key={method} className="flex justify-between text-sm">
+                <div key={method} className="flex justify-between text-pdv-sm">
                   <span className="capitalize">{method}:</span>
                   <span>
                     {formatCurrency(data.amount)} 

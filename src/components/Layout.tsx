@@ -1,17 +1,21 @@
-import React, { useEffect } from 'react';
-import { Link, useLocation, Outlet } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeProvider';
-import { Sun, Moon, Menu, ShoppingCart, Package, BarChart3, Settings } from 'lucide-react';
+import { Sun, Moon, Menu, ShoppingCart, Package, BarChart3, Settings, HelpCircle, LogOut } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useUserStore, useUIStore } from '../stores';
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
+import { KeyboardShortcutsHelp } from './ui/KeyboardShortcutsHelp';
 
 function Layout() {
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
-  const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
-  const [isMobile, setIsMobile] = React.useState(false);
-  const { user } = useUserStore();
+  const navigate = useNavigate();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isShortcutsHelpOpen, setIsShortcutsHelpOpen] = useState(false);
+  const { user, logout } = useUserStore();
   const { isLoading } = useUIStore();
 
   useEffect(() => {
@@ -28,13 +32,55 @@ function Layout() {
   }, []);
 
   const menuItems = [
-    { path: '/sales', label: 'Vendas', icon: ShoppingCart },
-    { path: '/products', label: 'Produtos', icon: Package },
-    { path: '/reports', label: 'Relatórios', icon: BarChart3 },
-    { path: '/settings', label: 'Configurações', icon: Settings },
+    { path: '/sales', label: 'Vendas (F2)', icon: ShoppingCart, shortcut: 'F2' },
+    { path: '/products', label: 'Produtos (F3)', icon: Package, shortcut: 'F3' },
+    { path: '/reports', label: 'Relatórios (F4)', icon: BarChart3, shortcut: 'F4' },
+    { path: '/settings', label: 'Configurações (F5)', icon: Settings, shortcut: 'F5' },
   ];
 
-  // Backdrop for mobile
+  // Configuração dos atalhos de teclado
+  const shortcuts = {
+    'F1': {
+      handler: () => setIsShortcutsHelpOpen(true),
+      description: 'Exibir ajuda de atalhos',
+    },
+    'F2': {
+      handler: () => navigate('/sales'),
+      description: 'Ir para Vendas',
+    },
+    'F3': {
+      handler: () => navigate('/products'),
+      description: 'Ir para Produtos',
+    },
+    'F4': {
+      handler: () => navigate('/reports'),
+      description: 'Ir para Relatórios',
+    },
+    'F5': {
+      handler: () => navigate('/settings'),
+      description: 'Ir para Configurações',
+    },
+    'ESCAPE': {
+      handler: () => setIsShortcutsHelpOpen(false),
+      description: 'Fechar janelas/diálogos',
+    },
+    'SHIFT+T': {
+      handler: () => toggleTheme(),
+      description: 'Alternar tema claro/escuro',
+    },
+    'SHIFT+L': {
+      handler: () => logout(),
+      description: 'Sair do sistema',
+    },
+    '?': {
+      handler: () => setIsShortcutsHelpOpen(true),
+      description: 'Exibir ajuda de atalhos',
+    },
+  };
+
+  const { getShortcutsList } = useKeyboardShortcuts(shortcuts);
+
+  // Backdrop para mobile
   const Backdrop = () => (
     <motion.div
       initial={{ opacity: 0 }}
@@ -83,11 +129,11 @@ function Layout() {
             transition={{ delay: 0.2 }}
             className="p-4 border-b border-border-light dark:border-border-dark"
           >
-            <h1 className="text-xl font-bold text-orange-500">Bem+ Economia</h1>
+            <h1 className="text-pdv-xl font-bold text-primary-600 dark:text-primary-400">Bem+ Economia</h1>
           </motion.div>
 
           {/* Menu Items */}
-          <nav className="flex-1 p-4 space-y-1">
+          <nav className="flex-1 p-4 space-y-2">
             {menuItems.map((item, index) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
@@ -102,37 +148,84 @@ function Layout() {
                   <Link
                     to={item.path}
                     className={cn(
-                      "flex items-center px-4 py-2 rounded-lg transition-all duration-200",
+                      "flex items-center px-4 py-3 rounded-lg transition-all duration-200",
                       "hover:bg-hover-light dark:hover:bg-hover-dark",
-                      isActive && "bg-primary-500 text-white hover:bg-primary-600",
+                      isActive 
+                        ? "bg-primary-500 text-white hover:bg-primary-600" 
+                        : "border border-border-light dark:border-border-dark",
                       "transform hover:scale-105"
                     )}
                     onClick={() => isMobile && setIsSidebarOpen(false)}
                   >
-                    <Icon className="h-5 w-5 mr-3" />
-                    <span>{item.label}</span>
+                    <Icon className="h-6 w-6 mr-3" />
+                    <span className="text-pdv-base font-medium">{item.label}</span>
+                    <kbd className={cn(
+                      "ml-auto px-2 py-1 text-pdv-xs rounded",
+                      isActive 
+                        ? "bg-primary-600 text-white" 
+                        : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300",
+                      "border border-gray-300 dark:border-gray-600"
+                    )}>
+                      {item.shortcut}
+                    </kbd>
                   </Link>
                 </motion.div>
               );
             })}
           </nav>
 
-          {/* Theme Toggle */}
+          {/* Ações do Rodapé */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="p-4 border-t border-border-light dark:border-border-dark"
+            className="p-4 border-t border-border-light dark:border-border-dark space-y-2"
           >
+            {/* Ajuda */}
             <button
-              onClick={toggleTheme}
+              onClick={() => setIsShortcutsHelpOpen(true)}
               className={cn(
-                "w-full flex items-center justify-center px-4 py-2 rounded-lg",
+                "w-full flex items-center px-4 py-3 rounded-lg",
                 "hover:bg-hover-light dark:hover:bg-hover-dark",
+                "border border-border-light dark:border-border-dark",
                 "transition-all duration-200 transform hover:scale-105"
               )}
             >
-              {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              <HelpCircle className="h-6 w-6 mr-3 text-pdv-highlight" />
+              <span className="text-pdv-base font-medium">Ajuda (F1)</span>
+            </button>
+
+            {/* Alternar Tema */}
+            <button
+              onClick={toggleTheme}
+              className={cn(
+                "w-full flex items-center px-4 py-3 rounded-lg",
+                "hover:bg-hover-light dark:hover:bg-hover-dark",
+                "border border-border-light dark:border-border-dark",
+                "transition-all duration-200 transform hover:scale-105"
+              )}
+            >
+              {theme === 'dark' 
+                ? <Sun className="h-6 w-6 mr-3 text-pdv-warning" /> 
+                : <Moon className="h-6 w-6 mr-3 text-primary-500" />
+              }
+              <span className="text-pdv-base font-medium">
+                Tema {theme === 'dark' ? 'Claro' : 'Escuro'} (Shift+T)
+              </span>
+            </button>
+
+            {/* Logout */}
+            <button
+              onClick={logout}
+              className={cn(
+                "w-full flex items-center px-4 py-3 rounded-lg",
+                "hover:bg-hover-light dark:hover:bg-hover-dark",
+                "border border-border-light dark:border-border-dark",
+                "transition-all duration-200 transform hover:scale-105"
+              )}
+            >
+              <LogOut className="h-6 w-6 mr-3 text-pdv-error" />
+              <span className="text-pdv-base font-medium">Sair (Shift+L)</span>
             </button>
           </motion.div>
         </div>
@@ -159,8 +252,23 @@ function Layout() {
               "transition-all duration-200 transform hover:scale-105"
             )}
           >
-            <Menu className="h-5 w-5" />
+            <Menu className="h-6 w-6" />
           </button>
+
+          {/* Informações do usuário */}
+          <div className="flex items-center ml-auto">
+            <div className="text-right mr-4">
+              <p className="text-pdv-sm font-medium text-text-light-primary dark:text-text-dark-primary">
+                {user?.email}
+              </p>
+              <p className="text-pdv-xs text-text-light-secondary dark:text-text-dark-secondary">
+                {new Date().toLocaleDateString('pt-BR')}
+              </p>
+            </div>
+            <div className="h-10 w-10 rounded-full bg-primary-500 flex items-center justify-center text-white text-pdv-base font-bold">
+              {user?.email?.charAt(0).toUpperCase() || 'U'}
+            </div>
+          </div>
         </motion.div>
 
         {/* Content */}
@@ -172,7 +280,32 @@ function Layout() {
         >
           <Outlet />
         </motion.div>
+
+        {/* Status Bar */}
+        <div className={cn(
+          "h-8 px-4 text-pdv-xs",
+          "bg-surface-light dark:bg-surface-dark",
+          "border-t border-border-light dark:border-border-dark",
+          "flex items-center justify-between"
+        )}>
+          <div className="flex items-center space-x-4">
+            <span>F1: Ajuda</span>
+            <span>F2: Vendas</span>
+            <span>F3: Produtos</span>
+            <span>F4: Relatórios</span>
+          </div>
+          <div>
+            <span>Versão 1.0.0</span>
+          </div>
+        </div>
       </main>
+
+      {/* Ajuda de Atalhos de Teclado */}
+      <KeyboardShortcutsHelp 
+        shortcuts={getShortcutsList()}
+        isOpen={isShortcutsHelpOpen}
+        onClose={() => setIsShortcutsHelpOpen(false)}
+      />
     </div>
   );
 }

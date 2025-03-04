@@ -8,74 +8,92 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Cores principais do tema
+        // Cores principais do tema PDV
         primary: {
-          50: '#fff7ed',
-          100: '#ffedd5',
-          200: '#fed7aa',
-          300: '#fdba74',
-          400: '#fb923c',
-          500: '#f97316',
-          600: '#ea580c',
-          700: '#c2410c',
-          800: '#9a3412',
-          900: '#7c2d12',
-          950: '#431407',
+          50: '#e6f7ff',
+          100: '#bae7ff',
+          200: '#91d5ff',
+          300: '#69c0ff',
+          400: '#40a9ff',
+          500: '#1890ff',
+          600: '#096dd9',
+          700: '#0050b3',
+          800: '#003a8c',
+          900: '#002766',
+          950: '#001a4d',
         },
-        // Cores de fundo
+        // Cores de fundo para PDV
         background: {
-          light: '#f8fafc', // Cinza muito claro
-          dark: '#0f172a',  // Azul escuro
+          light: '#f0f2f5', // Cinza claro para fundo
+          dark: '#001529',  // Azul escuro profundo
         },
         // Cores de superfície (cards, dropdowns, etc)
         surface: {
           light: '#ffffff',
-          dark: '#1e293b',
+          dark: '#0d2538',
         },
         // Cores de borda
         border: {
-          light: '#e2e8f0',
-          dark: '#334155',
+          light: '#d9d9d9',
+          dark: '#1f3a4d',
         },
         // Cores de texto
         text: {
           light: {
-            primary: '#0f172a',    // Texto principal
-            secondary: '#475569',   // Texto secundário
-            tertiary: '#94a3b8',   // Texto terciário
-            disabled: '#cbd5e1',    // Texto desabilitado
+            primary: '#000000',    // Texto principal - preto para máximo contraste
+            secondary: '#262626',   // Texto secundário
+            tertiary: '#595959',   // Texto terciário
+            disabled: '#bfbfbf',    // Texto desabilitado
           },
           dark: {
-            primary: '#f8fafc',    // Texto principal
-            secondary: '#cbd5e1',   // Texto secundário
-            tertiary: '#64748b',   // Texto terciário
-            disabled: '#475569',    // Texto desabilitado
+            primary: '#ffffff',    // Texto principal - branco para máximo contraste
+            secondary: '#e6e6e6',   // Texto secundário
+            tertiary: '#a6a6a6',   // Texto terciário
+            disabled: '#595959',    // Texto desabilitado
           },
         },
+        // Cores para PDV
+        pdv: {
+          highlight: '#ffcc00', // Amarelo para destaque
+          success: '#52c41a',   // Verde para sucesso
+          error: '#f5222d',     // Vermelho para erro
+          info: '#1890ff',      // Azul para informação
+          warning: '#faad14',   // Laranja para aviso
+        }
       },
       // Estados de interação
       backgroundColor: {
         hover: {
-          light: '#f1f5f9',
-          dark: '#334155',
+          light: '#e6f7ff',
+          dark: '#1f3a4d',
         },
         active: {
-          light: '#e2e8f0',
-          dark: '#475569',
+          light: '#bae7ff',
+          dark: '#296d98',
         },
         selected: {
-          light: '#f1f5f9',
-          dark: '#334155',
+          light: '#e6f7ff',
+          dark: '#1f3a4d',
         },
       },
       // Sombras
       boxShadow: {
         'sm-light': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
         'sm-dark': '0 1px 2px 0 rgba(0, 0, 0, 0.25)',
-        'md-light': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-        'md-dark': '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.26)',
-        'lg-light': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-        'lg-dark': '0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.25)',
+        'md-light': '0 2px 4px 0 rgba(0, 0, 0, 0.1)',
+        'md-dark': '0 2px 4px 0 rgba(0, 0, 0, 0.3)',
+        'lg-light': '0 4px 6px 0 rgba(0, 0, 0, 0.1)',
+        'lg-dark': '0 4px 6px 0 rgba(0, 0, 0, 0.3)',
+      },
+      // Fontes maiores para PDV
+      fontSize: {
+        'pdv-xs': '1rem',      // 16px
+        'pdv-sm': '1.125rem',  // 18px
+        'pdv-base': '1.25rem', // 20px
+        'pdv-lg': '1.5rem',    // 24px
+        'pdv-xl': '1.75rem',   // 28px
+        'pdv-2xl': '2rem',     // 32px
+        'pdv-3xl': '2.5rem',   // 40px
       },
       // Transições
       transitionProperty: {

@@ -1,7 +1,12 @@
 import React, { useState } from "react";
 import { createProduct } from "../../services/products";
 
-export function NewProductForm({ onClose }: { onClose: () => void }) {
+interface NewProductFormProps {
+  onClose: () => void;
+  onSuccess?: () => void;
+}
+
+export function NewProductForm({ onClose, onSuccess }: NewProductFormProps) {
   const [name, setName] = useState("");
   const [price, setPrice] = useState(0);
   const [stock, setStock] = useState(0);
@@ -13,7 +18,11 @@ export function NewProductForm({ onClose }: { onClose: () => void }) {
     e.preventDefault();
     try {
       await createProduct({ name, price, stock, min_stock: minStock, unit });
-      onClose();
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        onClose();
+      }
     } catch (err) {
       setError("Erro ao criar produto");
       console.log(err);

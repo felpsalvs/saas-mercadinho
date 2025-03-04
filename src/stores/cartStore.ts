@@ -1,12 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-
-type CartItem = {
-  productId: string
-  quantity: number
-  price: number
-  name: string
-}
+import { CartItem } from '../types'
 
 type CartStore = {
   items: CartItem[]
@@ -58,7 +52,10 @@ export const useCartStore = create<CartStore>()(
       clearCart: () => set({ items: [], total: 0 }),
       calculateTotal: () => {
         set((state) => ({
-          total: state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+          total: state.items.reduce((sum, item) => {
+            const itemTotal = item.total !== undefined ? item.total : item.price * item.quantity;
+            return sum + itemTotal;
+          }, 0)
         }))
       }
     }),
